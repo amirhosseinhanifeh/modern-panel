@@ -1,0 +1,106 @@
+<div class="space-y-6">
+  <!-- سربرگ -->
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">پیشخوان مدیریت</h1>
+    <p class="text-sm text-slate-500 mt-1">خلاصه وضعیت و شاخصهای کلیدی عملکرد سیستم</p>
+  </div>
+
+  <!-- کارتهای آماری: اسکلتون هنگام لود -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    @if (loadingStats()) {
+      @for (i of [1,2,3,4]; track i) {
+        <div class="rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse h-28"></div>
+      }
+    } @else {
+      @for (item of statItems(); track item.key) {
+        <app-stat-card 
+          [title]="item.title"
+          [value]="item.value"
+          [changeRate]="item.changeRate"
+          [icon]="item.icon"
+          [colorScheme]="item.colorScheme"
+        />
+      }
+    }
+  </div>
+
+  <!-- ردیف دو ستونه -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- فعالیتها -->
+    <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800 dark:text-slate-100">آخرین فعالیتهای کاربران</h2>
+        <span class="text-xs text-blue-600 hover:underline cursor-pointer">مشاهده کامل</span>
+      </div>
+
+      <div class="divide-y divide-slate-100 dark:divide-slate-800">
+        @if (loadingActivities()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="py-3 flex items-center gap-3 animate-pulse">
+              <div class="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
+              <div class="flex-1 space-y-1.5">
+                <div class="h-3.5 w-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div class="h-3 w-56 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              </div>
+            </div>
+          }
+        } @else {
+          @for (act of activitiesSignal(); track act.id) {
+            <div class="py-3 flex items-center justify-between text-sm">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs">
+                  @if (act.type === 'order') { 🛍️ }
+                  @else if (act.type === 'user') { 👤 }
+                  @else { ⚙️ }
+                </span>
+                <div>
+                  <p class="font-medium text-slate-800 dark:text-slate-200">{{ act.user }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ act.action }}</p>
+                </div>
+              </div>
+              <span class="text-xs text-slate-400 font-mono">{{ relativeTime(act.time) }}</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- بنر سلامت سیستم -->
+    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-md flex flex-col justify-between">
+      @if (loadingHealth()) {
+        <div class="animate-pulse space-y-3">
+          <div class="h-6 w-24 bg-white/30 rounded-md"></div>
+          <div class="h-5 w-40 bg-white/30 rounded"></div>
+          <div class="h-4 w-full bg-white/20 rounded"></div>
+        </div>
+      } @else if (systemHealthSignal(); as health) {
+        <div>
+          <span class="px-2.5 py-1 bg-white/20 rounded-md text-xs font-semibold backdrop-blur-xs">
+            {{ health.serverVersion }}
+          </span>
+          <h3 class="text-xl font-bold mt-4">
+            @switch (health.status) {
+              @case ('ok') { ✅ سامانه پایدار است }
+              @case ('warning') { ⚠️ نیاز به بررسی }
+              @default { 🔴 اختلال در سرویس }
+            }
+          </h3>
+          <p class="text-sm text-blue-100 mt-2 leading-relaxed">
+            تمام سرویسهای پسزمینه در وضعیت بهینه هستند. آپتایم: 
+            <span class="font-bold font-mono">{{ formatNumber(health.uptimeMinutes) }} دقیقه</span>
+          </p>
+        </div>
+      } @else {
+        <p class="text-sm text-blue-100">خطا در دریافت وضعیت سیستم.</p>
+      }
+
+      <div class="pt-6">
+        <button type="button" class="w-full py-2.5 bg-white text-blue-700 hover:bg-blue-50 active:scale-98 font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs">
+          بررسی لاگ سرورها
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,283 @@
+<div class="space-y-6">
+    <!-- هدر صفحه -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">مدیریت کاربران</h1>
+            <p class="text-sm text-slate-500 mt-1">مشاهده، فیلتر و مدیریت حساب‌های کاربری</p>
+        </div>
+
+        <!-- دکمه‌ها -->
+        <div class="flex items-center gap-2.5">
+            <button (click)="openCreateModal()" type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-medium rounded-xl shadow-sm transition-all cursor-pointer">
+                <span>➕</span>
+                <span>کاربر جدید</span>
+            </button>
+
+            <button (click)="fetchUsers()" type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 text-sm font-medium rounded-xl transition-all cursor-pointer">
+                <span>🔄</span>
+                <span class="hidden sm:inline">به‌روزرسانی</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- نوار ابزار جستجو و تعداد -->
+    <div
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="relative w-full sm:w-80">
+            <input type="text" [formControl]="searchControl" placeholder="جستجوی نام، ایمیل، یا نام کاربری..."
+                class="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400" />
+            <span class="absolute right-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
+        </div>
+
+        <div class="text-xs font-medium text-slate-500">
+            تعداد کاربران: <span class="text-slate-800 font-bold">{{ totalUsers() }}</span> نفر
+        </div>
+    </div>
+
+    <!-- لودینگ -->
+    @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200">
+        <div class="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p class="text-slate-500 text-sm mt-4 font-medium">در حال واکشی اطلاعات کاربران...</p>
+    </div>
+    }
+
+    <!-- ارور -->
+    @if (errorMessage()) {
+    <div class="flex items-center justify-between p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl">
+        <div class="flex items-center gap-2">
+            <span>⚠️</span>
+            <span class="text-sm font-medium">{{ errorMessage() }}</span>
+        </div>
+        <button (click)="fetchUsers()"
+            class="text-xs bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+            تلاش مجدد
+        </button>
+    </div>
+    }
+
+    <!-- جدول مدرن -->
+    @if (!isLoading() && !errorMessage()) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-sm">
+                <thead
+                    class="bg-slate-50/80 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
+                    <tr>
+                        <th class="py-3.5 px-4">شناسه</th>
+                        <th class="py-3.5 px-4">کاربر</th>
+                        <th class="py-3.5 px-4">نام کاربری</th>
+                        <th class="py-3.5 px-4">ایمیل</th>
+                        <th class="py-3.5 px-4">شرکت</th>
+                        <th class="py-3.5 px-4 text-center">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @for (user of users(); track user.id) {
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-3.5 px-4 text-slate-400 font-mono text-xs">#{{ user.id }}</td>
+                        <td class="py-3.5 px-4 font-semibold text-slate-800">{{ user.name }}</td>
+                        <td class="py-3.5 px-4">
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 font-mono">
+                                {{ user.username }}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600 font-mono text-xs">{{ user.email }}</td>
+                        <td class="py-3.5 px-4 text-slate-600">{{ user.company.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                            <button type="button" (click)="openDeleteModal(user)"
+                                class="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 transition p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
+                                </svg>
+                                <span>حذف</span>
+                            </button>|
+
+                            <button type="button" (click)="openEditModal(user)"
+                                class="text-gray-800 hover:text-gray-800 dark:text-rose-400 dark:hover:text-rose-300 transition p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-rose-950/30 cursor-pointer inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
+                                </svg>
+                                <span>ویرایش</span>
+                            </button>
+
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <p class="text-3xl mb-2">🔍</p>
+                            <p class="text-sm">کاربری با این مشخصات پیدا نشد!</p>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            @if (users()?.length) {
+            <nav class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl"
+                aria-label="صفحه‌بندی کاربران">
+
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    صفحهٔ {{ currentPage() }} از {{ totalPages() }}
+                    <span class="mx-1">·</span>
+                    {{ totalUsers() }} کاربر
+                </p>
+
+                <div class="flex items-center gap-1">
+                    <button type="button" (click)="setPage(currentPage() - 1)" [disabled]="currentPage() === 1"
+                        class="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800">
+                        قبلی
+                    </button>
+
+                    @for (page of pageNumbers(); track page) {
+                    <button type="button" (click)="setPage(page)"
+                        [attr.aria-current]="currentPage() === page ? 'page' : null"
+                        class="min-w-9 px-3 py-2 text-xs rounded-lg border" [class.bg-blue-600]="currentPage() === page"
+                        [class.text-white]="currentPage() === page" [class.border-blue-600]="currentPage() === page"
+                        [class.border-slate-200]="currentPage() !== page"
+                        [class.dark:border-slate-700]="currentPage() !== page">
+                        {{ page }}
+                    </button>
+                    }
+
+                    <button type="button" (click)="setPage(currentPage() + 1)"
+                        [disabled]="currentPage() === totalPages()"
+                        class="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800">
+                        بعدی
+                    </button>
+                </div>
+            </nav>
+            }
+
+        </div>
+    </div>
+    }
+</div>
+
+<!-- مودال ثبت کاربر جدید -->
+@if (isModalOpen()) {
+<app-modal title="ثبت نام کاربر جدید" (closed)="closeModal()">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="space-y-4">
+
+        <!-- نام کامل -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">نام و نام خانوادگی</label>
+            <input type="text" formControlName="name" placeholder="مثلاً: علی عباسی"
+                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+            @if (userForm.controls.name.touched && userForm.controls.name.invalid) {
+            <p class="text-xs text-rose-500 mt-1">وارد کردن نام الزامی است (حداقل ۳ حرف).</p>
+            }
+        </div>
+
+        <!-- نام کاربری -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">نام کاربری (لاتین)</label>
+            <input type="text" formControlName="username" placeholder="مثلاً: ali_abbasi" dir="ltr"
+                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono" />
+            @if (userForm.controls.username.touched && userForm.controls.username.invalid) {
+            <p class="text-xs text-rose-500 mt-1">نام کاربری معتبر نیست (فقط حروف و اعداد لاتین).</p>
+            }
+        </div>
+
+        <!-- ایمیل -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">آدرس ایمیل</label>
+            <input type="email" formControlName="email" placeholder="ali@example.com" dir="ltr"
+                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono" />
+            @if (userForm.controls.email.touched && userForm.controls.email.invalid) {
+            <p class="text-xs text-rose-500 mt-1">لطفاً یک آدرس ایمیل معتبر وارد کنید.</p>
+            }
+        </div>
+
+        <!-- شرکت -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">نام سازمان / شرکت</label>
+            <input type="text" formControlName="companyName" placeholder="مثلاً: دیجی‌کالا"
+                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+            @if (userForm.controls.companyName.touched && userForm.controls.companyName.invalid) {
+            <p class="text-xs text-rose-500 mt-1">نام شرکت الزامی است.</p>
+            }
+        </div>
+
+        <!-- دکمه‌های اکشن فرم -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button type="button" (click)="closeModal()" [disabled]="isSubmitting()"
+                class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 rounded-xl transition disabled:opacity-50 cursor-pointer">
+                انصراف
+            </button>
+
+            <button type="button" (click)="onSubmitUser()" [disabled]="isSubmitting() || userForm.invalid"
+                class="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                @if (isSubmitting()) {
+                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>در حال ثبت...</span>
+                } @else {
+                <span>ثبت کاربر</span>
+                }
+            </button>
+        </div>
+
+    </form>
+</app-modal>
+}
+@if(userToDelete() !=null)
+{
+<!-- مودال اختصاصی تایید حذف کاربر -->
+<app-modal title="تایید حذف کاربر" (close)="closeDeleteModal()">
+
+    <div class="space-y-4">
+        <!-- آیکون و متن هشدار -->
+        <div class="flex items-start gap-3">
+            <div
+                class="shrink-0 w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/50 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+            </div>
+
+            <div class="text-sm">
+                <p class="font-medium text-slate-800 dark:text-slate-200">
+                    آیا از حذف این کاربر اطمینان دارید؟
+                </p>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">
+                    کاربر <span class="font-semibold text-rose-600 dark:text-rose-400">«{{ userToDelete()?.name
+                        }}»</span> برای همیشه حذف خواهد شد و این عملیات قابل بازگشت نیست.
+                </p>
+            </div>
+        </div>
+
+        <!-- دکمه‌های اقدام (Actions) -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button type="button" (click)="closeDeleteModal()" [disabled]="deletingUserId() !== null"
+                class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 rounded-xl transition disabled:opacity-50 cursor-pointer">
+                انصراف
+            </button>
+
+            <button type="button" (click)="confirmDelete()" [disabled]="deletingUserId() !== null"
+                class="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                @if (deletingUserId() !== null) {
+                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>در حال حذف...</span>
+                } @else {
+                <span>بله، حذف شود</span>
+                }
+            </button>
+        </div>
+    </div>
+</app-modal>
+}

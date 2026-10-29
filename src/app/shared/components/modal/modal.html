@@ -1,0 +1,28 @@
+<!-- بک‌دراپ تیره -->
+<div 
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200"
+  (click)="close()">
+  
+  <!-- بدنه مودال (جلوگیری از بسته شدن هنگام کلیک داخل مودال با stopPropagation) -->
+  <div 
+    class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+    (click)="$event.stopPropagation()">
+    
+    <!-- هدر مودال -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+      <h3 class="text-base font-bold text-slate-800">{{ title() }}</h3>
+      <button 
+        (click)="close()" 
+        type="button" 
+        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-colors cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- بدنه که با فرم یا هر محتوایی از بیرون پر می‌شود -->
+    <div class="p-6 max-h-[80vh] overflow-y-auto">
+      <ng-content />
+    </div>
+
+  </div>
+</div>
